@@ -47,8 +47,16 @@ class GutenbergDownloader:
         Download a book by its ID in specified formats
         """
         try:
+            # Check if file already exists
+            for format_type in formats:
+                filename = f"{book_id}.{format_type}"
+                filepath = os.path.join(self.output_dir, filename)
+                if os.path.exists(filepath):
+                    logging.info(f"Book {book_id} already exists in {format_type} format")
+                    return filepath
+
             # Respect rate limiting
-            time.sleep(2)  # Be nice to Gutenberg servers
+            time.sleep(1)  # Be nice to Gutenberg servers
             
             book_url = f"{self.base_url}/ebooks/{book_id}"
             response = self.session.get(book_url)
@@ -91,39 +99,44 @@ class GutenbergDownloader:
         """
         successful = 0
         failed = 0
+        skipped = 0  # New counter for skipped (already existing) files
         total_books = end_id - start_id + 1
         
         # Initialize progress bar
         pbar = tqdm(range(start_id, end_id + 1), 
-                   desc=f"Success: {successful}, Failed: {failed}",
+                   desc=f"Success: {successful}, Failed: {failed}, Skipped: {skipped}",
                    total=total_books)
         
         for book_id in pbar:
             result = self.download_book(book_id, formats)
             if result:
-                successful += 1
+                if os.path.getmtime(result) < time.time() - 5:  # If file is older than 5 seconds
+                    skipped += 1
+                else:
+                    successful += 1
             else:
                 failed += 1
             
             # Update progress bar description with current stats
-            pbar.set_description(f"Success: {successful}, Failed: {failed}")
+            pbar.set_description(f"Success: {successful}, Failed: {failed}, Skipped: {skipped}")
             
             # Log progress
-            logging.info(f"Progress: {book_id}/{end_id} (Success: {successful}, Failed: {failed})")
+            logging.info(f"Progress: {book_id}/{end_id} (Success: {successful}, Failed: {failed}, Skipped: {skipped})")
         
         pbar.close()
-        return successful, failed
+        return successful, failed, skipped
 
 def main():
     downloader = GutenbergDownloader(output_dir="gutenberg_books")
     
     # Download books and get statistics
-    successful, failed = downloader.download_range(1, 1000000, formats=['txt'])
+    successful, failed, skipped = downloader.download_range(1, 1000000, formats=['txt'])
     
     # Print final statistics
     print(f"\nDownload completed!")
     print(f"Total successful downloads: {successful}")
     print(f"Total failed downloads: {failed}")
+    print(f"Total skipped (already existed): {skipped}")
 
 if __name__ == "__main__":
     main()
