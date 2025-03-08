@@ -107,7 +107,7 @@ def main():
     
     # Download books from ID 1 to 100 (as an example)
     # You can modify these numbers, but please be responsible
-    downloader.download_range(1, 100, formats=['txt'])
+    downloader.download_range(1, 1000000, formats=['txt'])
 
 if __name__ == "__main__":
     main()
