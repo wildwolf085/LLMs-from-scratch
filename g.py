@@ -126,7 +126,7 @@ class GutenbergDownloader:
         
         # Initialize progress bar
         pbar = tqdm(range(start_id, end_id + 1), 
-                   desc=f"Success: {successful}, Failed: {failed}, Skipped: {skipped}, Total: {self.format_size(initial_size)}",
+                   desc=f"Success: 0, Failed: 0, Skipped: 0, Total: 0",
                    total=total_books)
         
         for book_id in pbar:
@@ -146,11 +146,11 @@ class GutenbergDownloader:
                 f"Success: {successful}, Failed: {failed}, Skipped: {skipped}, Total: {formatted_size}"
             )
             
-            # Log progress
-            logging.info(
-                f"Progress: {book_id}/{end_id} (Success: {successful}, Failed: {failed}, "
-                f"Skipped: {skipped}, Size: {formatted_size})"
-            )
+            # # Log progress
+            # logging.info(
+            #     f"Progress: {book_id}/{end_id} (Success: {successful}, Failed: {failed}, "
+            #     f"Skipped: {skipped}, Size: {formatted_size})"
+            # )
         
         pbar.close()
         return successful, failed, skipped, total_size
