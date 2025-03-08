@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import urllib.parse
 from typing import List, Optional
 import logging
+from tqdm import tqdm
 
 # Configure logging
 logging.basicConfig(
@@ -86,28 +87,43 @@ class GutenbergDownloader:
 
     def download_range(self, start_id: int, end_id: int, formats: List[str] = ['txt']):
         """
-        Download a range of books by their IDs
+        Download a range of books by their IDs with progress bar
         """
         successful = 0
         failed = 0
+        total_books = end_id - start_id + 1
         
-        for book_id in range(start_id, end_id + 1):
+        # Initialize progress bar
+        pbar = tqdm(range(start_id, end_id + 1), 
+                   desc=f"Success: {successful}, Failed: {failed}",
+                   total=total_books)
+        
+        for book_id in pbar:
             result = self.download_book(book_id, formats)
             if result:
                 successful += 1
             else:
                 failed += 1
-                
+            
+            # Update progress bar description with current stats
+            pbar.set_description(f"Success: {successful}, Failed: {failed}")
+            
             # Log progress
             logging.info(f"Progress: {book_id}/{end_id} (Success: {successful}, Failed: {failed})")
+        
+        pbar.close()
+        return successful, failed
 
 def main():
-    # Example usage
     downloader = GutenbergDownloader(output_dir="gutenberg_books")
     
-    # Download books from ID 1 to 100 (as an example)
-    # You can modify these numbers, but please be responsible
-    downloader.download_range(1, 1000000, formats=['txt'])
+    # Download books and get statistics
+    successful, failed = downloader.download_range(1, 1000000, formats=['txt'])
+    
+    # Print final statistics
+    print(f"\nDownload completed!")
+    print(f"Total successful downloads: {successful}")
+    print(f"Total failed downloads: {failed}")
 
 if __name__ == "__main__":
     main()
