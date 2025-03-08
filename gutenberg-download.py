@@ -56,7 +56,7 @@ class GutenbergDownloader:
                     return filepath
 
             # Respect rate limiting
-            time.sleep(1)  # Be nice to Gutenberg servers
+            time.sleep(0.2)  # Be nice to Gutenberg servers
             
             book_url = f"{self.base_url}/ebooks/{book_id}"
             response = self.session.get(book_url)
